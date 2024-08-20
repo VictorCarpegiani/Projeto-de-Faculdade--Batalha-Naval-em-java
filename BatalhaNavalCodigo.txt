@@ -1,0 +1,280 @@
+ 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+
+public class BatalhaNaval {
+
+public static void main(String[] args) {
+  Scanner scanner = new Scanner(System.in);
+  //criação dos tabuleiros
+  Tabuleiro jogadorTabuleiro = new Tabuleiro();
+  Tabuleiro computadorTabuleiro = new Tabuleiro();
+
+  System.out.println("Bem-vindo à Batalha Naval, voce e o computador possuem 15 peças.");
+  
+
+  jogadorTabuleiro.inicializarTabuleiro();
+  computadorTabuleiro.inicializarTabuleiro();
+  posicionarNaviosAleatoriamente(jogadorTabuleiro);
+  posicionarNaviosAleatoriamente(computadorTabuleiro);
+  
+  List<String> tirosComputador = new ArrayList<>(); // Lista para armazenar os tiros do computador
+
+  System.out.println("Tabuleiros prontos, jogo iniciado.");
+
+  while (true) {//nesse segmento o jogo é controlado
+      System.out.println("\nSeu Tabuleiro:");
+      jogadorTabuleiro.exibirTabuleiro();
+
+      System.out.println("\nTabuleiro do Computador:");
+      computadorTabuleiro.exibirTabuleiroDoOponente();
+
+      System.out.print("\nInforme a posição para atirar (ex: A1) ou 'SAIR' para desistir: ");
+      String tiro = scanner.nextLine().toUpperCase();
+
+      if (tiro.equals("SAIR")) {
+               System.out.println("Você desistiu. O computador venceu.");
+               break;
+           }
+
+           if (tiro.length() != 2 || !Character.isLetter(tiro.charAt(0)) || !Character.isDigit(tiro.charAt(1))) {
+               System.out.println("Entrada inválida. Use o formato correto (ex: A1) ou digite 'SAIR' para desistir.");
+               continue;
+           }
+
+           int linha = tiro.charAt(0) - 'A';
+           int coluna = tiro.charAt(1) - '1';
+
+           boolean acertou = computadorTabuleiro.atirar(linha, coluna);
+
+           if (acertou) {
+               System.out.println("Você acertou um objeto naval!");
+               if (computadorTabuleiro.todosObjetosAfundados()) {
+                   System.out.println("Você venceu! Todos os objetos do computador foram afundados.");
+                   
+                   break;
+               }
+           } else {
+               System.out.println("Você errou o tiro.");
+           }
+
+           // Simular o tiro do computador
+           Random rand = new Random();
+           int tiroComputadorLinha, tiroComputadorColuna;
+           String coordenada;
+
+           do {
+               tiroComputadorLinha = rand.nextInt(5);
+               tiroComputadorColuna = rand.nextInt(5);
+               coordenada = Integer.toString(tiroComputadorLinha) + Integer.toString(tiroComputadorColuna);
+           } while (tirosComputador.contains(coordenada));
+
+           tirosComputador.add(coordenada); // Adicionar o tiro à lista
+
+           if (jogadorTabuleiro.atirar(tiroComputadorLinha, tiroComputadorColuna)) {
+               if (jogadorTabuleiro.todosObjetosAfundados()) {
+                   System.out.println("O computador venceu! Todos os seus objetos foram afundados.");
+                   
+                   break;
+               }
+           }
+       }
+
+       scanner.close();
+   }
+
+   private static void posicionarNaviosAleatoriamente(Tabuleiro tabuleiro) {//Metodo que coloca os navios em ambos tabuleiros 
+       Random rand = new Random();
+       tabuleiro.posicionarNavioAleatoriamente(new PortaAvioes());
+       tabuleiro.posicionarNavioAleatoriamente(new PortaAvioes());
+       tabuleiro.posicionarNavioAleatoriamente(new PortaAvioes());
+       tabuleiro.posicionarNavioAleatoriamente(new PortaAvioes());
+       tabuleiro.posicionarNavioAleatoriamente(new Contratorpedeiro());
+       tabuleiro.posicionarNavioAleatoriamente(new Contratorpedeiro());
+       tabuleiro.posicionarNavioAleatoriamente(new Contratorpedeiro());
+       tabuleiro.posicionarNavioAleatoriamente(new Contratorpedeiro());
+       tabuleiro.posicionarNavioAleatoriamente(new Contratorpedeiro());
+       tabuleiro.posicionarNavioAleatoriamente(new Submarino());
+       tabuleiro.posicionarNavioAleatoriamente(new Submarino());
+       tabuleiro.posicionarNavioAleatoriamente(new Submarino());
+       tabuleiro.posicionarNavioAleatoriamente(new Submarino());
+       tabuleiro.posicionarNavioAleatoriamente(new Submarino());
+       tabuleiro.posicionarNavioAleatoriamente(new Submarino());
+   }
+}
+
+  class Tabuleiro { // Classe template do tabuleiro. Cria a matriz em si.
+   private char[][] tabuleiro;
+   private int objetosRestantes;
+
+   public Tabuleiro() {
+       tabuleiro = new char[5][5];
+       objetosRestantes = 15;
+   }
+
+   public void inicializarTabuleiro() { //Inicializa o tabuleiro, o criando.
+       for (int i = 0; i < 5; i++) {
+           for (int j = 0; j < 5; j++) {
+               tabuleiro[i][j] = '~'; // agua
+           }
+       }
+   }
+
+   public void exibirTabuleiro() { //Mostra o tabuleiro no programa
+       System.out.println("  1 2 3 4 5");
+       for (int i = 0; i < 5; i++) {
+           System.out.print((char) ('A' + i) + " ");
+           for (int j = 0; j < 5; j++) {
+               System.out.print(tabuleiro[i][j] + " ");
+           }
+           System.out.println();
+       }
+   }
+
+   public void exibirTabuleiroDoOponente() { //Mostra o tabuleiro do computador
+       System.out.println("  1 2 3 4 5");
+       for (int i = 0; i < 5; i++) {
+           System.out.print((char) ('A' + i) + " ");
+           for (int j = 0; j < 5; j++) {
+               if (tabuleiro[i][j] == 'X' || tabuleiro[i][j] == 'O') {
+                   System.out.print(tabuleiro[i][j] + " ");
+               } else {
+                   System.out.print("~ ");
+               }
+           }
+           System.out.println();
+       }
+   }
+
+   public void posicionarNavioAleatoriamente(ObjetoNaval objeto) { //Metodo que define como serão colocados os navios nos tabuleiros
+       Random rand = new Random();
+       int tamanho = objeto.getTamanho();
+       int direcao = rand.nextInt(2); // 0 para horizontal, 1 para vertical
+
+       int linha, coluna;
+
+       do {
+           linha = rand.nextInt(5);
+           coluna = rand.nextInt(5);
+       } while (!verificarPosicaoDisponivel(linha, coluna, tamanho, direcao));
+
+       if (direcao == 0) {
+           for (int i = coluna; i < coluna + tamanho; i++) {
+               tabuleiro[linha][i] = objeto.getSimbolo();
+           }
+       } else {
+           for (int i = linha; i < linha + tamanho; i++) {
+               tabuleiro[i][coluna] = objeto.getSimbolo();
+           }
+       }
+   }
+
+   public boolean atirar(int linha, int coluna) { //Metodo que opera o tiro do jogador e do computador
+        if (tabuleiro[linha][coluna] == '~') {
+       tabuleiro[linha][coluna] = 'O'; // Tiro na água
+       return false;
+   } else if (tabuleiro[linha][coluna] == 'O' || tabuleiro[linha][coluna] == 'X') {
+       // Verifica se a posição já foi atingida antes (água ou objeto já atingido)
+       System.out.println("Posição repetida!");
+       return false;
+   } else {
+       tabuleiro[linha][coluna] = 'X'; // Objeto atingido
+       objetosRestantes--;
+       return true;
+   }
+}
+
+
+   public boolean todosObjetosAfundados() { //metodo que define quando o jogador ganha ou perde
+       if (objetosRestantes == 0) {
+       return true;
+       }
+       else {
+       return false;
+       }
+   }
+
+   private boolean verificarPosicaoDisponivel(int linha, int coluna, int tamanho, int direcao) { //metodo que verifica se o jogador atirou ou não no local
+       if (direcao == 0) {
+           if (coluna + tamanho > 5) {
+               return false;
+           }
+           for (int i = coluna; i < coluna + tamanho; i++) {
+               if (tabuleiro[linha][i] != '~') {
+                   return false; // Posição já ocupada
+               }
+           }
+       } else {
+           if (linha + tamanho > 5) {
+               return false;
+           }
+           for (int i = linha; i < linha + tamanho; i++) {
+               if (tabuleiro[i][coluna] != '~') {
+                   return false; // Posição já ocupada
+               }
+           }
+       }
+       return true;
+   }
+}
+
+abstract class ObjetoNaval { //Classe para representar mais facilmente com simbolos os diferentes tipos de navios do jogo
+   private String nome;
+   private int tamanho;
+
+   public ObjetoNaval(String nome, int tamanho) {
+       this.nome = nome;
+       this.tamanho = tamanho;
+   }
+
+   public abstract char getSimbolo();
+   public int getTamanho() {
+       return tamanho;
+   }
+}
+
+class PortaAvioes extends ObjetoNaval {
+   public PortaAvioes() {
+       super("Porta-aviões", 1);
+   }
+
+   @Override
+   public char getSimbolo() {
+       return 'P';
+   }
+}
+
+class Fragata extends ObjetoNaval {
+   public Fragata() {
+       super("Fragata", 1);
+   }
+
+   @Override
+   public char getSimbolo() {
+       return 'D';
+   }
+}
+
+class Contratorpedeiro extends ObjetoNaval {
+   public Contratorpedeiro() {
+       super("Contratorpedeiro", 1);
+   }
+
+   @Override
+   public char getSimbolo() {
+       return 'D';
+   }
+}
+
+class Submarino extends ObjetoNaval {
+   public Submarino() {
+       super("Submarino", 1);
+   }
+
+   @Override
+   public char getSimbolo() {
+       return 'S';
+   }
+}
